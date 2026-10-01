@@ -12,16 +12,20 @@ class AppDatabase {
     final path = join(base, 'teamo.db');
     _database = await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await _createTasks(db);
         await _createProjects(db);
         await _createFollowups(db);
+        await _createMeetings(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await _createProjects(db);
           await _createFollowups(db);
+        }
+        if (oldVersion < 3) {
+          await _createMeetings(db);
         }
       },
     );
@@ -70,6 +74,24 @@ class AppDatabase {
         due_date TEXT,
         snoozed_until TEXT,
         note TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _createMeetings(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS meetings(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        project TEXT NOT NULL DEFAULT '',
+        attendees TEXT NOT NULL DEFAULT '',
+        starts_at TEXT NOT NULL,
+        duration_minutes INTEGER NOT NULL DEFAULT 30,
+        agenda TEXT NOT NULL DEFAULT '',
+        decisions TEXT NOT NULL DEFAULT '',
+        action_items TEXT NOT NULL DEFAULT '',
+        notes TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL
       )
     ''');
