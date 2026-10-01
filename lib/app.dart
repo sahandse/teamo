@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'data/task_repository.dart';
 import 'features/meetings/meetings_page.dart';
 import 'features/projects/projects_hub_page.dart';
+import 'features/scrum/sprints_page.dart';
 import 'features/tasks/task_board_page.dart';
 import 'state/task_store.dart';
 
@@ -21,6 +22,7 @@ class TeamoApp extends StatelessWidget {
       brightness: Brightness.dark,
       surface: const Color(0xFF11131A),
     );
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'تیمو',
@@ -193,6 +195,12 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(width: 10),
             Expanded(child: _Shortcut(icon: Icons.event_note_rounded, label: 'جلسات', onTap: () => widget.onOpen(3))),
           ]),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(child: _Shortcut(icon: Icons.loop_rounded, label: 'اسپرینت', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SprintsPage())))),
+            const SizedBox(width: 10),
+            Expanded(child: _Shortcut(icon: Icons.more_horiz_rounded, label: 'ابزارهای بیشتر', onTap: () => widget.onOpen(4))),
+          ]),
         ],
       ),
     );
@@ -212,7 +220,7 @@ class MoreHubPage extends StatelessWidget {
           const SizedBox(height: 5),
           Text('ابزارهای Scrum و PMO', style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 18),
-          const _MoreTile(icon: Icons.loop_rounded, title: 'اسپرینت‌ها', subtitle: 'Sprint Goal، Velocity و Burndown'),
+          _MoreTile(icon: Icons.loop_rounded, title: 'اسپرینت‌ها', subtitle: 'Sprint Goal، Story Point و Velocity', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SprintsPage()))),
           const _MoreTile(icon: Icons.flag_outlined, title: 'پیگیری‌ها', subtitle: 'موارد منتظر پاسخ و سررسید گذشته'),
           const _MoreTile(icon: Icons.warning_amber_rounded, title: 'ریسک‌ها و مسائل', subtitle: 'Risk Register و Issue Log'),
           const _MoreTile(icon: Icons.insights_rounded, title: 'گزارش‌ها', subtitle: 'گزارش مدیریتی پروژه و تیم'),
@@ -271,18 +279,23 @@ class _MoreTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  const _MoreTile({required this.icon, required this.title, required this.subtitle});
+  final VoidCallback? onTap;
+  const _MoreTile({required this.icon, required this.title, required this.subtitle, this.onTap});
 
   @override
-  Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(22)),
-        child: Row(children: [
-          CircleAvatar(child: Icon(icon)),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w900)), const SizedBox(height: 3), Text(subtitle, style: Theme.of(context).textTheme.bodySmall)])),
-          const Icon(Icons.chevron_left_rounded),
-        ]),
+  Widget build(BuildContext context) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(22)),
+          child: Row(children: [
+            CircleAvatar(child: Icon(icon)),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontWeight: FontWeight.w900)), const SizedBox(height: 3), Text(subtitle, style: Theme.of(context).textTheme.bodySmall)])),
+            const Icon(Icons.chevron_left_rounded),
+          ]),
+        ),
       );
 }

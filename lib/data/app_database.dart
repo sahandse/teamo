@@ -12,12 +12,13 @@ class AppDatabase {
     final path = join(base, 'teamo.db');
     _database = await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (db, version) async {
         await _createTasks(db);
         await _createProjects(db);
         await _createFollowups(db);
         await _createMeetings(db);
+        await _createSprints(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -26,6 +27,9 @@ class AppDatabase {
         }
         if (oldVersion < 3) {
           await _createMeetings(db);
+        }
+        if (oldVersion < 4) {
+          await _createSprints(db);
         }
       },
     );
@@ -92,6 +96,23 @@ class AppDatabase {
         decisions TEXT NOT NULL DEFAULT '',
         action_items TEXT NOT NULL DEFAULT '',
         notes TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _createSprints(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sprints(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        project TEXT NOT NULL DEFAULT '',
+        goal TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'planned',
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        planned_points INTEGER NOT NULL DEFAULT 0,
+        completed_points INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
       )
     ''');
