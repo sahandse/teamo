@@ -1,3 +1,5 @@
+import 'package:sqflite/sqflite.dart';
+
 import '../models/task_item.dart';
 import 'app_database.dart';
 
@@ -29,7 +31,10 @@ class TaskRepository {
 
   Future<void> seedIfEmpty() async {
     final db = await AppDatabase.instance.database;
-    final count = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM tasks')) ?? 0;
+    final count = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM tasks'),
+        ) ??
+        0;
     if (count > 0) return;
 
     final now = DateTime.now();
