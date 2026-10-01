@@ -12,13 +12,14 @@ class AppDatabase {
     final path = join(base, 'teamo.db');
     _database = await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: (db, version) async {
         await _createTasks(db);
         await _createProjects(db);
         await _createFollowups(db);
         await _createMeetings(db);
         await _createSprints(db);
+        await _createWorkItems(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -30,6 +31,9 @@ class AppDatabase {
         }
         if (oldVersion < 4) {
           await _createSprints(db);
+        }
+        if (oldVersion < 5) {
+          await _createWorkItems(db);
         }
       },
     );
@@ -114,6 +118,24 @@ class AppDatabase {
         planned_points INTEGER NOT NULL DEFAULT 0,
         completed_points INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _createWorkItems(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS work_items(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        project TEXT NOT NULL DEFAULT '',
+        sprint_id INTEGER,
+        type TEXT NOT NULL DEFAULT 'story',
+        status TEXT NOT NULL DEFAULT 'backlog',
+        story_points INTEGER NOT NULL DEFAULT 0,
+        assignee TEXT NOT NULL DEFAULT '',
+        description TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL,
+        FOREIGN KEY(sprint_id) REFERENCES sprints(id) ON DELETE SET NULL
       )
     ''');
   }
