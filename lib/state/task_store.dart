@@ -28,17 +28,26 @@ class TaskStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> move(TaskItem task, TaskStatus status) async {
-    final updated = task.copyWith(status: status);
-    await repository.update(updated);
-    items = [for (final item in items) if (item.id == task.id) updated else item];
+  Future<void> update(TaskItem task) async {
+    await repository.update(task);
+    items = [for (final item in items) if (item.id == task.id) task else item];
     notifyListeners();
+  }
+
+  Future<void> move(TaskItem task, TaskStatus status) async {
+    await update(task.copyWith(status: status));
   }
 
   Future<void> remove(TaskItem task) async {
     if (task.id == null) return;
     await repository.delete(task.id!);
     items = items.where((item) => item.id != task.id).toList();
+    notifyListeners();
+  }
+
+  Future<void> removeById(int id) async {
+    await repository.delete(id);
+    items = items.where((item) => item.id != id).toList();
     notifyListeners();
   }
 }
