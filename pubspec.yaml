@@ -1,5 +1,5 @@
 name: teamo
-version: 0.4.0+4
+version: 0.5.0+5
 description: اپلیکیشن فارسی مدیریت تیم، پروژه، جلسات، اسکرام و PMO.
 publish_to: 'none'
 
@@ -14,6 +14,7 @@ dependencies:
   path: ^1.9.1
   shamsi_date: ^1.1.1
   flutter_local_notifications: ^19.5.0
+  timezone: ^0.10.0
 
 dev_dependencies:
   flutter_test:
