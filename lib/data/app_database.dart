@@ -12,7 +12,7 @@ class AppDatabase {
     final path = join(base, 'teamo.db');
     _database = await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: (db, version) async {
         await _createTasks(db);
         await _createProjects(db);
@@ -20,28 +20,23 @@ class AppDatabase {
         await _createMeetings(db);
         await _createSprints(db);
         await _createWorkItems(db);
+        await _createScrumHistory(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await _createProjects(db);
           await _createFollowups(db);
         }
-        if (oldVersion < 3) {
-          await _createMeetings(db);
-        }
-        if (oldVersion < 4) {
-          await _createSprints(db);
-        }
-        if (oldVersion < 5) {
-          await _createWorkItems(db);
-        }
+        if (oldVersion < 3) await _createMeetings(db);
+        if (oldVersion < 4) await _createSprints(db);
+        if (oldVersion < 5) await _createWorkItems(db);
+        if (oldVersion < 6) await _createScrumHistory(db);
       },
     );
     return _database!;
   }
 
-  static Future<void> _createTasks(Database db) async {
-    await db.execute('''
+  static Future<void> _createTasks(Database db) async => db.execute('''
       CREATE TABLE IF NOT EXISTS tasks(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -52,12 +47,9 @@ class AppDatabase {
         due_date TEXT,
         description TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL
-      )
-    ''');
-  }
+      )''');
 
-  static Future<void> _createProjects(Database db) async {
-    await db.execute('''
+  static Future<void> _createProjects(Database db) async => db.execute('''
       CREATE TABLE IF NOT EXISTS projects(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -67,12 +59,9 @@ class AppDatabase {
         due_date TEXT,
         description TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL
-      )
-    ''');
-  }
+      )''');
 
-  static Future<void> _createFollowups(Database db) async {
-    await db.execute('''
+  static Future<void> _createFollowups(Database db) async => db.execute('''
       CREATE TABLE IF NOT EXISTS followups(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -83,12 +72,9 @@ class AppDatabase {
         snoozed_until TEXT,
         note TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL
-      )
-    ''');
-  }
+      )''');
 
-  static Future<void> _createMeetings(Database db) async {
-    await db.execute('''
+  static Future<void> _createMeetings(Database db) async => db.execute('''
       CREATE TABLE IF NOT EXISTS meetings(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -101,12 +87,9 @@ class AppDatabase {
         action_items TEXT NOT NULL DEFAULT '',
         notes TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL
-      )
-    ''');
-  }
+      )''');
 
-  static Future<void> _createSprints(Database db) async {
-    await db.execute('''
+  static Future<void> _createSprints(Database db) async => db.execute('''
       CREATE TABLE IF NOT EXISTS sprints(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -118,12 +101,9 @@ class AppDatabase {
         planned_points INTEGER NOT NULL DEFAULT 0,
         completed_points INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
-      )
-    ''');
-  }
+      )''');
 
-  static Future<void> _createWorkItems(Database db) async {
-    await db.execute('''
+  static Future<void> _createWorkItems(Database db) async => db.execute('''
       CREATE TABLE IF NOT EXISTS work_items(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -136,7 +116,37 @@ class AppDatabase {
         description TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL,
         FOREIGN KEY(sprint_id) REFERENCES sprints(id) ON DELETE SET NULL
-      )
-    ''');
+      )''');
+
+  static Future<void> _createScrumHistory(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sprint_snapshots(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sprint_id INTEGER NOT NULL,
+        snapshot_date TEXT NOT NULL,
+        total_points INTEGER NOT NULL DEFAULT 0,
+        remaining_points INTEGER NOT NULL DEFAULT 0,
+        done_points INTEGER NOT NULL DEFAULT 0,
+        UNIQUE(sprint_id, snapshot_date)
+      )''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS daily_scrums(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sprint_id INTEGER NOT NULL,
+        entry_date TEXT NOT NULL,
+        yesterday TEXT NOT NULL DEFAULT '',
+        today TEXT NOT NULL DEFAULT '',
+        blockers TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS retrospectives(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sprint_id INTEGER NOT NULL,
+        went_well TEXT NOT NULL DEFAULT '',
+        improve TEXT NOT NULL DEFAULT '',
+        actions TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )''');
   }
 }
