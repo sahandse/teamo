@@ -4,6 +4,7 @@ import '../../core/date/persian_date.dart';
 import '../../data/sprint_repository.dart';
 import '../../models/sprint_item.dart';
 import '../../state/sprint_store.dart';
+import 'product_backlog_page.dart';
 
 class SprintsPage extends StatefulWidget {
   const SprintsPage({super.key});
@@ -35,7 +36,16 @@ class _SprintsPageState extends State<SprintsPage> {
   Widget build(BuildContext context) {
     final active = store.items.where((e) => e.status == SprintStatus.active).length;
     return Scaffold(
-      appBar: AppBar(title: const Text('اسپرینت‌ها')),
+      appBar: AppBar(
+        title: const Text('اسپرینت‌ها'),
+        actions: [
+          IconButton(
+            tooltip: 'Product Backlog',
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProductBacklogPage())),
+            icon: const Icon(Icons.inventory_2_outlined),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditor(),
         icon: const Icon(Icons.add_rounded),
@@ -49,6 +59,12 @@ class _SprintsPageState extends State<SprintsPage> {
             const SizedBox(width: 10),
             Expanded(child: _Summary(label: 'فعال', value: '$active')),
           ]),
+          const SizedBox(height: 12),
+          FilledButton.tonalIcon(
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProductBacklogPage())),
+            icon: const Icon(Icons.view_list_rounded),
+            label: const Text('باز کردن Product Backlog'),
+          ),
           const SizedBox(height: 18),
           if (store.loading) const Center(child: CircularProgressIndicator()),
           if (!store.loading && store.items.isEmpty)
@@ -59,7 +75,11 @@ class _SprintsPageState extends State<SprintsPage> {
             ),
           ...store.items.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: _SprintCard(item: item, onTap: () => _openEditor(item)),
+                child: _SprintCard(
+                  item: item,
+                  onEdit: () => _openEditor(item),
+                  onOpenBacklog: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => ProductBacklogPage(initialSprint: item))),
+                ),
               )),
         ],
       ),
@@ -181,30 +201,33 @@ class _DateField extends StatelessWidget {
 
 class _SprintCard extends StatelessWidget {
   final SprintItem item;
-  final VoidCallback onTap;
-  const _SprintCard({required this.item, required this.onTap});
+  final VoidCallback onEdit;
+  final VoidCallback onOpenBacklog;
+  const _SprintCard({required this.item, required this.onEdit, required this.onOpenBacklog});
 
   @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(22)),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const CircleAvatar(child: Icon(Icons.loop_rounded)),
-              const SizedBox(width: 12),
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(item.title, style: const TextStyle(fontWeight: FontWeight.w900)), if (item.project.isNotEmpty) Text(item.project, style: Theme.of(context).textTheme.bodySmall)])),
-              Chip(label: Text(_SprintsPageState._statusLabel(item.status))),
-            ]),
-            if (item.goal.isNotEmpty) ...[const SizedBox(height: 10), Text(item.goal)],
-            const SizedBox(height: 14),
-            ClipRRect(borderRadius: BorderRadius.circular(99), child: LinearProgressIndicator(value: item.progress, minHeight: 8)),
-            const SizedBox(height: 8),
-            Row(children: [Text('${item.completedPoints}/${item.plannedPoints} SP', style: const TextStyle(fontWeight: FontWeight.w800)), const Spacer(), Text('${PersianDate.short(item.startDate)} تا ${PersianDate.short(item.endDate)}', style: Theme.of(context).textTheme.bodySmall)]),
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(22)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            const CircleAvatar(child: Icon(Icons.loop_rounded)),
+            const SizedBox(width: 12),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(item.title, style: const TextStyle(fontWeight: FontWeight.w900)), if (item.project.isNotEmpty) Text(item.project, style: Theme.of(context).textTheme.bodySmall)])),
+            Chip(label: Text(_SprintsPageState._statusLabel(item.status))),
           ]),
-        ),
+          if (item.goal.isNotEmpty) ...[const SizedBox(height: 10), Text(item.goal)],
+          const SizedBox(height: 14),
+          ClipRRect(borderRadius: BorderRadius.circular(99), child: LinearProgressIndicator(value: item.progress, minHeight: 8)),
+          const SizedBox(height: 8),
+          Row(children: [Text('${item.completedPoints}/${item.plannedPoints} SP', style: const TextStyle(fontWeight: FontWeight.w800)), const Spacer(), Text('${PersianDate.short(item.startDate)} تا ${PersianDate.short(item.endDate)}', style: Theme.of(context).textTheme.bodySmall)]),
+          const SizedBox(height: 10),
+          Row(children: [
+            Expanded(child: FilledButton.tonalIcon(onPressed: onOpenBacklog, icon: const Icon(Icons.view_kanban_outlined), label: const Text('Sprint Backlog'))),
+            const SizedBox(width: 8),
+            IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined)),
+          ]),
+        ]),
       );
 }
 
