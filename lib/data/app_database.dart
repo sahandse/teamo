@@ -12,7 +12,7 @@ class AppDatabase {
     final path = join(base, 'teamo.db');
     _database = await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: (db, version) async {
         await _createTasks(db);
         await _createProjects(db);
@@ -21,6 +21,7 @@ class AppDatabase {
         await _createSprints(db);
         await _createWorkItems(db);
         await _createScrumHistory(db);
+        await _createScrumGovernance(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -31,6 +32,7 @@ class AppDatabase {
         if (oldVersion < 4) await _createSprints(db);
         if (oldVersion < 5) await _createWorkItems(db);
         if (oldVersion < 6) await _createScrumHistory(db);
+        if (oldVersion < 7) await _createScrumGovernance(db);
       },
     );
     return _database!;
@@ -146,6 +148,46 @@ class AppDatabase {
         went_well TEXT NOT NULL DEFAULT '',
         improve TEXT NOT NULL DEFAULT '',
         actions TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )''');
+  }
+
+  static Future<void> _createScrumGovernance(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS sprint_reviews(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sprint_id INTEGER NOT NULL,
+        summary TEXT NOT NULL DEFAULT '',
+        accepted TEXT NOT NULL DEFAULT '',
+        rejected TEXT NOT NULL DEFAULT '',
+        feedback TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS definition_of_done(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        is_done INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL
+      )''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS team_capacity(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sprint_id INTEGER NOT NULL,
+        member_name TEXT NOT NULL,
+        available_hours REAL NOT NULL DEFAULT 0,
+        focus_factor REAL NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL
+      )''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS impediments(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sprint_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        owner TEXT NOT NULL DEFAULT '',
+        severity TEXT NOT NULL DEFAULT 'medium',
+        status TEXT NOT NULL DEFAULT 'open',
+        note TEXT NOT NULL DEFAULT '',
         created_at TEXT NOT NULL
       )''');
   }
