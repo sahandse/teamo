@@ -12,9 +12,9 @@ class AppDatabase {
     final path = join(base, 'teamo.db');
     _database = await openDatabase(
       path,
-      version: 9,
+      version: 10,
       onCreate: (db, version) async {
-        await _createTasks(db); await _createProjects(db); await _createFollowups(db); await _createMeetings(db); await _createSprints(db); await _createWorkItems(db); await _createScrumHistory(db); await _createScrumGovernance(db); await _createPmo(db); await _createPmoGovernance(db);
+        await _createTasks(db); await _createProjects(db); await _createFollowups(db); await _createMeetings(db); await _createSprints(db); await _createWorkItems(db); await _createScrumHistory(db); await _createScrumGovernance(db); await _createPmo(db); await _createPmoGovernance(db); await _createExecutivePmo(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) { await _createProjects(db); await _createFollowups(db); }
@@ -25,6 +25,7 @@ class AppDatabase {
         if (oldVersion < 7) await _createScrumGovernance(db);
         if (oldVersion < 8) await _createPmo(db);
         if (oldVersion < 9) await _createPmoGovernance(db);
+        if (oldVersion < 10) await _createExecutivePmo(db);
       },
     );
     return _database!;
@@ -45,5 +46,10 @@ class AppDatabase {
     await db.execute('CREATE TABLE IF NOT EXISTS stakeholders(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,role TEXT NOT NULL DEFAULT "",project TEXT NOT NULL DEFAULT "",influence TEXT NOT NULL DEFAULT "medium",interest TEXT NOT NULL DEFAULT "medium",engagement TEXT NOT NULL DEFAULT "manage")');
     await db.execute('CREATE TABLE IF NOT EXISTS milestones(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",due_date TEXT NOT NULL,status TEXT NOT NULL DEFAULT "planned",owner TEXT NOT NULL DEFAULT "")');
     await db.execute('CREATE TABLE IF NOT EXISTS weekly_reports(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,summary TEXT NOT NULL DEFAULT "",achievements TEXT NOT NULL DEFAULT "",blockers TEXT NOT NULL DEFAULT "",next_week TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+  }
+  static Future<void> _createExecutivePmo(Database db) async {
+    await db.execute('CREATE TABLE IF NOT EXISTS resource_allocations(id INTEGER PRIMARY KEY AUTOINCREMENT,member_name TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",role TEXT NOT NULL DEFAULT "",allocation_percent REAL NOT NULL DEFAULT 0,weekly_hours REAL NOT NULL DEFAULT 0,start_date TEXT,end_date TEXT,created_at TEXT NOT NULL)');
+    await db.execute('CREATE TABLE IF NOT EXISTS project_dependencies(id INTEGER PRIMARY KEY AUTOINCREMENT,project TEXT NOT NULL,depends_on TEXT NOT NULL,dependency_type TEXT NOT NULL DEFAULT "finish_to_start",status TEXT NOT NULL DEFAULT "active",note TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+    await db.execute('CREATE TABLE IF NOT EXISTS project_budgets(id INTEGER PRIMARY KEY AUTOINCREMENT,project TEXT NOT NULL,planned_cost REAL NOT NULL DEFAULT 0,actual_cost REAL NOT NULL DEFAULT 0,forecast_cost REAL NOT NULL DEFAULT 0,currency TEXT NOT NULL DEFAULT "IRR",updated_at TEXT NOT NULL,UNIQUE(project))');
   }
 }
