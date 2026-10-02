@@ -12,216 +12,38 @@ class AppDatabase {
     final path = join(base, 'teamo.db');
     _database = await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: (db, version) async {
-        await _createTasks(db);
-        await _createProjects(db);
-        await _createFollowups(db);
-        await _createMeetings(db);
-        await _createSprints(db);
-        await _createWorkItems(db);
-        await _createScrumHistory(db);
-        await _createScrumGovernance(db);
-        await _createPmo(db);
+        await _createTasks(db); await _createProjects(db); await _createFollowups(db); await _createMeetings(db); await _createSprints(db); await _createWorkItems(db); await _createScrumHistory(db); await _createScrumGovernance(db); await _createPmo(db); await _createPmoGovernance(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          await _createProjects(db);
-          await _createFollowups(db);
-        }
+        if (oldVersion < 2) { await _createProjects(db); await _createFollowups(db); }
         if (oldVersion < 3) await _createMeetings(db);
         if (oldVersion < 4) await _createSprints(db);
         if (oldVersion < 5) await _createWorkItems(db);
         if (oldVersion < 6) await _createScrumHistory(db);
         if (oldVersion < 7) await _createScrumGovernance(db);
         if (oldVersion < 8) await _createPmo(db);
+        if (oldVersion < 9) await _createPmoGovernance(db);
       },
     );
     return _database!;
   }
 
-  static Future<void> _createTasks(Database db) async => db.execute('''
-      CREATE TABLE IF NOT EXISTS tasks(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        project TEXT NOT NULL,
-        status TEXT NOT NULL,
-        priority TEXT NOT NULL,
-        assignee TEXT NOT NULL DEFAULT '',
-        due_date TEXT,
-        description TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-
-  static Future<void> _createProjects(Database db) async => db.execute('''
-      CREATE TABLE IF NOT EXISTS projects(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        owner TEXT NOT NULL DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'active',
-        progress REAL NOT NULL DEFAULT 0,
-        due_date TEXT,
-        description TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-
-  static Future<void> _createFollowups(Database db) async => db.execute('''
-      CREATE TABLE IF NOT EXISTS followups(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        context TEXT NOT NULL DEFAULT '',
-        assignee TEXT NOT NULL DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'open',
-        due_date TEXT,
-        snoozed_until TEXT,
-        note TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-
-  static Future<void> _createMeetings(Database db) async => db.execute('''
-      CREATE TABLE IF NOT EXISTS meetings(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        project TEXT NOT NULL DEFAULT '',
-        attendees TEXT NOT NULL DEFAULT '',
-        starts_at TEXT NOT NULL,
-        duration_minutes INTEGER NOT NULL DEFAULT 30,
-        agenda TEXT NOT NULL DEFAULT '',
-        decisions TEXT NOT NULL DEFAULT '',
-        action_items TEXT NOT NULL DEFAULT '',
-        notes TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-
-  static Future<void> _createSprints(Database db) async => db.execute('''
-      CREATE TABLE IF NOT EXISTS sprints(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        project TEXT NOT NULL DEFAULT '',
-        goal TEXT NOT NULL DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'planned',
-        start_date TEXT NOT NULL,
-        end_date TEXT NOT NULL,
-        planned_points INTEGER NOT NULL DEFAULT 0,
-        completed_points INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL
-      )''');
-
-  static Future<void> _createWorkItems(Database db) async => db.execute('''
-      CREATE TABLE IF NOT EXISTS work_items(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        project TEXT NOT NULL DEFAULT '',
-        sprint_id INTEGER,
-        type TEXT NOT NULL DEFAULT 'story',
-        status TEXT NOT NULL DEFAULT 'backlog',
-        story_points INTEGER NOT NULL DEFAULT 0,
-        assignee TEXT NOT NULL DEFAULT '',
-        description TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL,
-        FOREIGN KEY(sprint_id) REFERENCES sprints(id) ON DELETE SET NULL
-      )''');
-
-  static Future<void> _createScrumHistory(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS sprint_snapshots(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sprint_id INTEGER NOT NULL,
-        snapshot_date TEXT NOT NULL,
-        total_points INTEGER NOT NULL DEFAULT 0,
-        remaining_points INTEGER NOT NULL DEFAULT 0,
-        done_points INTEGER NOT NULL DEFAULT 0,
-        UNIQUE(sprint_id, snapshot_date)
-      )''');
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS daily_scrums(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sprint_id INTEGER NOT NULL,
-        entry_date TEXT NOT NULL,
-        yesterday TEXT NOT NULL DEFAULT '',
-        today TEXT NOT NULL DEFAULT '',
-        blockers TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS retrospectives(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sprint_id INTEGER NOT NULL,
-        went_well TEXT NOT NULL DEFAULT '',
-        improve TEXT NOT NULL DEFAULT '',
-        actions TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-  }
-
-  static Future<void> _createScrumGovernance(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS sprint_reviews(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sprint_id INTEGER NOT NULL,
-        summary TEXT NOT NULL DEFAULT '',
-        accepted TEXT NOT NULL DEFAULT '',
-        rejected TEXT NOT NULL DEFAULT '',
-        feedback TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS definition_of_done(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        is_done INTEGER NOT NULL DEFAULT 0,
-        created_at TEXT NOT NULL
-      )''');
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS team_capacity(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sprint_id INTEGER NOT NULL,
-        member_name TEXT NOT NULL,
-        available_hours REAL NOT NULL DEFAULT 0,
-        focus_factor REAL NOT NULL DEFAULT 1,
-        created_at TEXT NOT NULL
-      )''');
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS impediments(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sprint_id INTEGER NOT NULL,
-        title TEXT NOT NULL,
-        owner TEXT NOT NULL DEFAULT '',
-        severity TEXT NOT NULL DEFAULT 'medium',
-        status TEXT NOT NULL DEFAULT 'open',
-        note TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-  }
-
-  static Future<void> _createPmo(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS pmo_register(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        type TEXT NOT NULL DEFAULT 'risk',
-        title TEXT NOT NULL,
-        project TEXT NOT NULL DEFAULT '',
-        owner TEXT NOT NULL DEFAULT '',
-        severity TEXT NOT NULL DEFAULT 'medium',
-        probability REAL NOT NULL DEFAULT 0,
-        impact REAL NOT NULL DEFAULT 0,
-        status TEXT NOT NULL DEFAULT 'open',
-        response_plan TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL
-      )''');
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS okr_items(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        objective TEXT NOT NULL,
-        key_result TEXT NOT NULL,
-        project TEXT NOT NULL DEFAULT '',
-        owner TEXT NOT NULL DEFAULT '',
-        target REAL NOT NULL DEFAULT 100,
-        current REAL NOT NULL DEFAULT 0,
-        unit TEXT NOT NULL DEFAULT '%',
-        status TEXT NOT NULL DEFAULT 'active',
-        due_date TEXT,
-        created_at TEXT NOT NULL
-      )''');
+  static Future<void> _createTasks(Database db) async => db.execute('CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,project TEXT NOT NULL,status TEXT NOT NULL,priority TEXT NOT NULL,assignee TEXT NOT NULL DEFAULT "",due_date TEXT,description TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+  static Future<void> _createProjects(Database db) async => db.execute('CREATE TABLE IF NOT EXISTS projects(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,owner TEXT NOT NULL DEFAULT "",status TEXT NOT NULL DEFAULT "active",progress REAL NOT NULL DEFAULT 0,due_date TEXT,description TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+  static Future<void> _createFollowups(Database db) async => db.execute('CREATE TABLE IF NOT EXISTS followups(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,context TEXT NOT NULL DEFAULT "",assignee TEXT NOT NULL DEFAULT "",status TEXT NOT NULL DEFAULT "open",due_date TEXT,snoozed_until TEXT,note TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+  static Future<void> _createMeetings(Database db) async => db.execute('CREATE TABLE IF NOT EXISTS meetings(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",attendees TEXT NOT NULL DEFAULT "",starts_at TEXT NOT NULL,duration_minutes INTEGER NOT NULL DEFAULT 30,agenda TEXT NOT NULL DEFAULT "",decisions TEXT NOT NULL DEFAULT "",action_items TEXT NOT NULL DEFAULT "",notes TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+  static Future<void> _createSprints(Database db) async => db.execute('CREATE TABLE IF NOT EXISTS sprints(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",goal TEXT NOT NULL DEFAULT "",status TEXT NOT NULL DEFAULT "planned",start_date TEXT NOT NULL,end_date TEXT NOT NULL,planned_points INTEGER NOT NULL DEFAULT 0,completed_points INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL)');
+  static Future<void> _createWorkItems(Database db) async => db.execute('CREATE TABLE IF NOT EXISTS work_items(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",sprint_id INTEGER,type TEXT NOT NULL DEFAULT "story",status TEXT NOT NULL DEFAULT "backlog",story_points INTEGER NOT NULL DEFAULT 0,assignee TEXT NOT NULL DEFAULT "",description TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+  static Future<void> _createScrumHistory(Database db) async { await db.execute('CREATE TABLE IF NOT EXISTS sprint_snapshots(id INTEGER PRIMARY KEY AUTOINCREMENT,sprint_id INTEGER NOT NULL,snapshot_date TEXT NOT NULL,total_points INTEGER NOT NULL DEFAULT 0,remaining_points INTEGER NOT NULL DEFAULT 0,done_points INTEGER NOT NULL DEFAULT 0,UNIQUE(sprint_id,snapshot_date))'); await db.execute('CREATE TABLE IF NOT EXISTS daily_scrums(id INTEGER PRIMARY KEY AUTOINCREMENT,sprint_id INTEGER NOT NULL,entry_date TEXT NOT NULL,yesterday TEXT NOT NULL DEFAULT "",today TEXT NOT NULL DEFAULT "",blockers TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)'); await db.execute('CREATE TABLE IF NOT EXISTS retrospectives(id INTEGER PRIMARY KEY AUTOINCREMENT,sprint_id INTEGER NOT NULL,went_well TEXT NOT NULL DEFAULT "",improve TEXT NOT NULL DEFAULT "",actions TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)'); }
+  static Future<void> _createScrumGovernance(Database db) async { await db.execute('CREATE TABLE IF NOT EXISTS sprint_reviews(id INTEGER PRIMARY KEY AUTOINCREMENT,sprint_id INTEGER NOT NULL,summary TEXT NOT NULL DEFAULT "",accepted TEXT NOT NULL DEFAULT "",rejected TEXT NOT NULL DEFAULT "",feedback TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)'); await db.execute('CREATE TABLE IF NOT EXISTS definition_of_done(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,is_done INTEGER NOT NULL DEFAULT 0,created_at TEXT NOT NULL)'); await db.execute('CREATE TABLE IF NOT EXISTS team_capacity(id INTEGER PRIMARY KEY AUTOINCREMENT,sprint_id INTEGER NOT NULL,member_name TEXT NOT NULL,available_hours REAL NOT NULL DEFAULT 0,focus_factor REAL NOT NULL DEFAULT 1,created_at TEXT NOT NULL)'); await db.execute('CREATE TABLE IF NOT EXISTS impediments(id INTEGER PRIMARY KEY AUTOINCREMENT,sprint_id INTEGER NOT NULL,title TEXT NOT NULL,owner TEXT NOT NULL DEFAULT "",severity TEXT NOT NULL DEFAULT "medium",status TEXT NOT NULL DEFAULT "open",note TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)'); }
+  static Future<void> _createPmo(Database db) async { await db.execute('CREATE TABLE IF NOT EXISTS pmo_register(id INTEGER PRIMARY KEY AUTOINCREMENT,type TEXT NOT NULL DEFAULT "risk",title TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",owner TEXT NOT NULL DEFAULT "",severity TEXT NOT NULL DEFAULT "medium",probability REAL NOT NULL DEFAULT 0,impact REAL NOT NULL DEFAULT 0,status TEXT NOT NULL DEFAULT "open",response_plan TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)'); await db.execute('CREATE TABLE IF NOT EXISTS okr_items(id INTEGER PRIMARY KEY AUTOINCREMENT,objective TEXT NOT NULL,key_result TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",owner TEXT NOT NULL DEFAULT "",target REAL NOT NULL DEFAULT 100,current REAL NOT NULL DEFAULT 0,unit TEXT NOT NULL DEFAULT "%",status TEXT NOT NULL DEFAULT "active",due_date TEXT,created_at TEXT NOT NULL)'); }
+  static Future<void> _createPmoGovernance(Database db) async {
+    await db.execute('CREATE TABLE IF NOT EXISTS change_requests(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",requester TEXT NOT NULL DEFAULT "",impact TEXT NOT NULL DEFAULT "",status TEXT NOT NULL DEFAULT "pending",decision TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+    await db.execute('CREATE TABLE IF NOT EXISTS decision_logs(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",owner TEXT NOT NULL DEFAULT "",rationale TEXT NOT NULL DEFAULT "",outcome TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
+    await db.execute('CREATE TABLE IF NOT EXISTS stakeholders(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT NOT NULL,role TEXT NOT NULL DEFAULT "",project TEXT NOT NULL DEFAULT "",influence TEXT NOT NULL DEFAULT "medium",interest TEXT NOT NULL DEFAULT "medium",engagement TEXT NOT NULL DEFAULT "manage")');
+    await db.execute('CREATE TABLE IF NOT EXISTS milestones(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,project TEXT NOT NULL DEFAULT "",due_date TEXT NOT NULL,status TEXT NOT NULL DEFAULT "planned",owner TEXT NOT NULL DEFAULT "")');
+    await db.execute('CREATE TABLE IF NOT EXISTS weekly_reports(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,summary TEXT NOT NULL DEFAULT "",achievements TEXT NOT NULL DEFAULT "",blockers TEXT NOT NULL DEFAULT "",next_week TEXT NOT NULL DEFAULT "",created_at TEXT NOT NULL)');
   }
 }
