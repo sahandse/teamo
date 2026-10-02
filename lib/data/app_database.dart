@@ -12,7 +12,7 @@ class AppDatabase {
     final path = join(base, 'teamo.db');
     _database = await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: (db, version) async {
         await _createTasks(db);
         await _createProjects(db);
@@ -22,6 +22,7 @@ class AppDatabase {
         await _createWorkItems(db);
         await _createScrumHistory(db);
         await _createScrumGovernance(db);
+        await _createPmo(db);
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
@@ -33,6 +34,7 @@ class AppDatabase {
         if (oldVersion < 5) await _createWorkItems(db);
         if (oldVersion < 6) await _createScrumHistory(db);
         if (oldVersion < 7) await _createScrumGovernance(db);
+        if (oldVersion < 8) await _createPmo(db);
       },
     );
     return _database!;
@@ -188,6 +190,37 @@ class AppDatabase {
         severity TEXT NOT NULL DEFAULT 'medium',
         status TEXT NOT NULL DEFAULT 'open',
         note TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )''');
+  }
+
+  static Future<void> _createPmo(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS pmo_register(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL DEFAULT 'risk',
+        title TEXT NOT NULL,
+        project TEXT NOT NULL DEFAULT '',
+        owner TEXT NOT NULL DEFAULT '',
+        severity TEXT NOT NULL DEFAULT 'medium',
+        probability REAL NOT NULL DEFAULT 0,
+        impact REAL NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'open',
+        response_plan TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      )''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS okr_items(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        objective TEXT NOT NULL,
+        key_result TEXT NOT NULL,
+        project TEXT NOT NULL DEFAULT '',
+        owner TEXT NOT NULL DEFAULT '',
+        target REAL NOT NULL DEFAULT 100,
+        current REAL NOT NULL DEFAULT 0,
+        unit TEXT NOT NULL DEFAULT '%',
+        status TEXT NOT NULL DEFAULT 'active',
+        due_date TEXT,
         created_at TEXT NOT NULL
       )''');
   }
