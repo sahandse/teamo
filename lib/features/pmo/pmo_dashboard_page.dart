@@ -88,7 +88,7 @@ class _PmoDashboardPageState extends State<PmoDashboardPage> with SingleTickerPr
         const SizedBox(height: 10),
         if (projects.isEmpty) const _Empty(title: 'پروژه‌ای ثبت نشده', subtitle: 'پروژه‌ها از بخش پروژه‌های تیمو وارد Portfolio می‌شوند.'),
         ...projects.map((p) {
-          final progress = ((p['progress'] as num?)?.toDouble() ?? 0).clamp(0, 1);
+          final progress = ((p['progress'] as num?)?.toDouble() ?? 0).clamp(0.0, 1.0).toDouble();
           final status = '${p['status'] ?? 'active'}';
           return Card(
             margin: const EdgeInsets.only(bottom: 10),
