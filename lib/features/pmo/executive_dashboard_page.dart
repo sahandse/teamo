@@ -82,7 +82,7 @@ class _ExecutivePmoPageState extends State<ExecutivePmoPage> with SingleTickerPr
     final green = projects.where((e) => e['rag'] == 'green').length;
     final totalPlanned = budgets.fold<double>(0, (sum, e) => sum + e.plannedCost);
     final totalActual = budgets.fold<double>(0, (sum, e) => sum + e.actualCost);
-    final overAllocated = _memberLoads().where((e) => e.value > 100).length;
+    final overAllocated = _memberLoads().entries.where((e) => e.value > 100).length;
     final blockedDeps = dependencies.where((e) => e.status == 'blocked').length;
     final executiveScore = (100 - red * 18 - amber * 7 - overAllocated * 10 - blockedDeps * 8).clamp(0, 100);
 
