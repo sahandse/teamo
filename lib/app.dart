@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'data/task_repository.dart';
 import 'features/meetings/meetings_page.dart';
+import 'features/pmo/pmo_dashboard_page.dart';
 import 'features/projects/projects_hub_page.dart';
 import 'features/scrum/scrum_governance_page.dart';
 import 'features/scrum/scrum_insights_page.dart';
@@ -160,7 +161,11 @@ class _DashboardPageState extends State<DashboardPage> {
             Expanded(child: _Shortcut(icon: Icons.insights_rounded, label: 'Scrum Insights', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumInsightsPage())))),
           ]),
           const SizedBox(height: 10),
-          _Shortcut(icon: Icons.dashboard_customize_outlined, label: 'Scrum Control Center', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumGovernancePage()))),
+          Row(children: [
+            Expanded(child: _Shortcut(icon: Icons.dashboard_customize_outlined, label: 'Scrum Control', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumGovernancePage())))),
+            const SizedBox(width: 10),
+            Expanded(child: _Shortcut(icon: Icons.account_tree_outlined, label: 'PMO', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoDashboardPage())))),
+          ]),
         ],
       ),
     );
@@ -181,8 +186,8 @@ class MoreHubPage extends StatelessWidget {
             _MoreTile(icon: Icons.loop_rounded, title: 'اسپرینت‌ها', subtitle: 'Sprint Goal، Backlog و Velocity', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SprintsPage()))),
             _MoreTile(icon: Icons.insights_rounded, title: 'Scrum Insights', subtitle: 'Burndown روزانه، Daily Scrum و Retrospective', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumInsightsPage()))),
             _MoreTile(icon: Icons.dashboard_customize_outlined, title: 'Scrum Control Center', subtitle: 'Sprint Review، DoD، ظرفیت تیم و Impediment Log', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumGovernancePage()))),
+            _MoreTile(icon: Icons.account_tree_outlined, title: 'PMO Control Center', subtitle: 'Portfolio، KPI/OKR، Risk/Issue Register و گزارش', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoDashboardPage()))),
             const _MoreTile(icon: Icons.flag_outlined, title: 'پیگیری‌ها', subtitle: 'موارد منتظر پاسخ و سررسید گذشته'),
-            const _MoreTile(icon: Icons.warning_amber_rounded, title: 'ریسک‌ها و مسائل', subtitle: 'Risk Register و Issue Log'),
             const _MoreTile(icon: Icons.settings_outlined, title: 'تنظیمات', subtitle: 'ظاهر، اعلان‌ها و تنظیمات عمومی'),
           ],
         ),
