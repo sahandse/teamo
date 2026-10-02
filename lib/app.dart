@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'data/task_repository.dart';
 import 'features/meetings/meetings_page.dart';
 import 'features/pmo/pmo_dashboard_page.dart';
+import 'features/pmo/pmo_governance_page.dart';
 import 'features/projects/projects_hub_page.dart';
 import 'features/scrum/scrum_governance_page.dart';
 import 'features/scrum/scrum_insights_page.dart';
@@ -166,6 +167,8 @@ class _DashboardPageState extends State<DashboardPage> {
             const SizedBox(width: 10),
             Expanded(child: _Shortcut(icon: Icons.account_tree_outlined, label: 'PMO', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoDashboardPage())))),
           ]),
+          const SizedBox(height: 10),
+          _Shortcut(icon: Icons.policy_outlined, label: 'PMO Governance', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoGovernancePage()))),
         ],
       ),
     );
@@ -187,6 +190,7 @@ class MoreHubPage extends StatelessWidget {
             _MoreTile(icon: Icons.insights_rounded, title: 'Scrum Insights', subtitle: 'Burndown روزانه، Daily Scrum و Retrospective', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumInsightsPage()))),
             _MoreTile(icon: Icons.dashboard_customize_outlined, title: 'Scrum Control Center', subtitle: 'Sprint Review، DoD، ظرفیت تیم و Impediment Log', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumGovernancePage()))),
             _MoreTile(icon: Icons.account_tree_outlined, title: 'PMO Control Center', subtitle: 'Portfolio، KPI/OKR، Risk/Issue Register و گزارش', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoDashboardPage()))),
+            _MoreTile(icon: Icons.policy_outlined, title: 'PMO Governance', subtitle: 'Change Request، Decision Log، Stakeholders و Milestones', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoGovernancePage()))),
             const _MoreTile(icon: Icons.flag_outlined, title: 'پیگیری‌ها', subtitle: 'موارد منتظر پاسخ و سررسید گذشته'),
             const _MoreTile(icon: Icons.settings_outlined, title: 'تنظیمات', subtitle: 'ظاهر، اعلان‌ها و تنظیمات عمومی'),
           ],
