@@ -13,14 +13,12 @@ class TaskStore extends ChangeNotifier {
   Future<void> load() async {
     loading = true;
     notifyListeners();
-    await repository.seedIfEmpty();
     items = await repository.all();
     loading = false;
     notifyListeners();
   }
 
-  List<TaskItem> byStatus(TaskStatus status) =>
-      items.where((task) => task.status == status).toList();
+  List<TaskItem> byStatus(TaskStatus status) => items.where((task) => task.status == status).toList();
 
   Future<void> add(TaskItem task) async {
     final saved = await repository.create(task);
