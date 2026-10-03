@@ -43,7 +43,11 @@ class PortfolioPriority {
   final bool mandatory;
   final String note;
   const PortfolioPriority({this.id, required this.project, required this.strategy, required this.valueScore, required this.riskScore, required this.effortScore, required this.mandatory, required this.note});
-  double get score => (strategy * 0.35) + (valueScore * 0.35) + ((10 - riskScore.clamp(0, 10)) * 0.15) + ((10 - effortScore.clamp(0, 10)) * 0.15) + (mandatory ? 2 : 0);
+  double get score {
+    final risk = riskScore.clamp(0, 10).toDouble();
+    final effort = effortScore.clamp(0, 10).toDouble();
+    return (strategy * 0.35) + (valueScore * 0.35) + ((10.0 - risk) * 0.15) + ((10.0 - effort) * 0.15) + (mandatory ? 2.0 : 0.0);
+  }
   factory PortfolioPriority.fromMap(Map<String, Object?> m) => PortfolioPriority(id: m['id'] as int?, project: '${m['project'] ?? ''}', strategy: (m['strategy'] as num?)?.toDouble() ?? 0, valueScore: (m['value_score'] as num?)?.toDouble() ?? 0, riskScore: (m['risk_score'] as num?)?.toDouble() ?? 0, effortScore: (m['effort_score'] as num?)?.toDouble() ?? 0, mandatory: (m['mandatory'] as num?)?.toInt() == 1, note: '${m['note'] ?? ''}');
 }
 
