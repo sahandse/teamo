@@ -6,6 +6,7 @@ import 'features/pmo/executive_dashboard_page.dart';
 import 'features/pmo/pmo_dashboard_page.dart';
 import 'features/pmo/pmo_governance_page.dart';
 import 'features/pmo/portfolio_intelligence_page.dart';
+import 'features/pmo/strategic_pmo_page.dart';
 import 'features/projects/projects_hub_page.dart';
 import 'features/scrum/scrum_governance_page.dart';
 import 'features/scrum/scrum_insights_page.dart';
@@ -51,7 +52,7 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   @override void initState() { super.initState(); widget.store.addListener(_refresh); }
   @override void dispose() { widget.store.removeListener(_refresh); super.dispose(); }
-  void _refresh() => mounted ? setState(() {}) : null;
+  void _refresh() { if (mounted) setState(() {}); }
   @override Widget build(BuildContext context) {
     final all = widget.store.items.length; final done = widget.store.items.where((e) => e.status.name == 'done').length; final doing = widget.store.items.where((e) => e.status.name == 'doing').length; final completion = all == 0 ? 0.0 : done / all;
     return SafeArea(child: ListView(padding: const EdgeInsets.fromLTRB(18, 18, 18, 110), children: [
@@ -65,7 +66,7 @@ class _DashboardPageState extends State<DashboardPage> {
       Row(children: [Expanded(child: _Shortcut(icon: Icons.loop_rounded, label: 'اسپرینت', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SprintsPage())))), const SizedBox(width: 10), Expanded(child: _Shortcut(icon: Icons.insights_rounded, label: 'Scrum Insights', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumInsightsPage()))))]), const SizedBox(height: 10),
       Row(children: [Expanded(child: _Shortcut(icon: Icons.dashboard_customize_outlined, label: 'Scrum Control', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ScrumGovernancePage())))), const SizedBox(width: 10), Expanded(child: _Shortcut(icon: Icons.account_tree_outlined, label: 'PMO', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoDashboardPage()))))]), const SizedBox(height: 10),
       Row(children: [Expanded(child: _Shortcut(icon: Icons.policy_outlined, label: 'PMO Governance', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoGovernancePage())))), const SizedBox(width: 10), Expanded(child: _Shortcut(icon: Icons.speed_rounded, label: 'Executive PMO', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ExecutivePmoPage()))))]), const SizedBox(height: 10),
-      _Shortcut(icon: Icons.timeline_rounded, label: 'Portfolio Intelligence', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PortfolioIntelligencePage()))),
+      Row(children: [Expanded(child: _Shortcut(icon: Icons.timeline_rounded, label: 'Portfolio Intelligence', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PortfolioIntelligencePage())))), const SizedBox(width: 10), Expanded(child: _Shortcut(icon: Icons.auto_graph_rounded, label: 'Strategic PMO', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StrategicPmoPage()))))]),
     ]));
   }
 }
@@ -81,6 +82,7 @@ class MoreHubPage extends StatelessWidget {
     _MoreTile(icon: Icons.policy_outlined, title: 'PMO Governance', subtitle: 'Change Request، Decision Log، Stakeholders و Milestones', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PmoGovernancePage()))),
     _MoreTile(icon: Icons.speed_rounded, title: 'Executive PMO', subtitle: 'RAG Health، منابع، Dependency Map و Budget Tracking', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ExecutivePmoPage()))),
     _MoreTile(icon: Icons.timeline_rounded, title: 'Portfolio Intelligence', subtitle: 'Capacity Forecast، Critical Path، Timeline، Cost Trend و Digest', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PortfolioIntelligencePage()))),
+    _MoreTile(icon: Icons.auto_graph_rounded, title: 'Strategic PMO', subtitle: 'Scenario Planning، EVM، CPI/SPI، Prioritization و Benefits', onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const StrategicPmoPage()))),
     const _MoreTile(icon: Icons.flag_outlined, title: 'پیگیری‌ها', subtitle: 'موارد منتظر پاسخ و سررسید گذشته'), const _MoreTile(icon: Icons.settings_outlined, title: 'تنظیمات', subtitle: 'ظاهر، اعلان‌ها و تنظیمات عمومی'),
   ]));
 }
